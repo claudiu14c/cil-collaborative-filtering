@@ -107,7 +107,10 @@ class ALSRecommender:
         return lambda sids, pids: self.predict(sids, pids)
 
 
+val_rmses = []
+train_rmses = []
 for s in [10, 15, 20, 42, 50]:
+    print(s)
     train_df, valid_df = read_data_df(s)
     k = 15
     num_iterations = 30
@@ -117,55 +120,79 @@ for s in [10, 15, 20, 42, 50]:
                          num_iters=num_iterations,
                          reg=regParam)
     als.fit()
+    val_rmse = evaluate(valid_df, als.get_pred_fn())
+    test_rmse = evaluate(train_df, als.get_pred_fn())
+    val_rmses.append(val_rmse)
+    train_rmses.append(test_rmse)
+    print('\n')
     print('\n')
 
-    pred_fn = als.get_pred_fn()
-    make_submission(pred_fn,
-                    filename=f'''
-                        submissions/als_simple_tuned_{k}_{regParam}_{num_iterations}.csv
-                    ''')
+val_mean_rmse = np.mean(val_rmses)
+val_std_rmse = np.std(val_rmses)
+train_mean_rmse = np.mean(train_rmses)
+train_std_rmse = np.std(train_rmses)
+print(f'''Mean train RMSE: {train_mean_rmse:.4f},
+          Std train RMSE: {train_std_rmse:.4f}''')
+print(f'''Mean validation RMSE: {val_mean_rmse:.4f},
+          Std validation RMSE: {val_std_rmse:.4f}''')
 
 
-# def hyperparameter_search(
-#     train_df: pd.DataFrame,
-#     valid_df: pd.DataFrame,
-#     param_grid: Dict[str, Any]
-# ) -> Tuple[Dict[str, Any], float]:
-#     """
-#     Brute-force grid search over hyperparameters.
+# train_df, valid_df = read_data_df()
+# k = 15
+# num_iterations = 30
+# regParam = 20.0
+# als = ALSRecommender(train_df, valid_df,
+#                      num_factors=k,
+#                      num_iters=num_iterations,
+#                      reg=regParam)
+# als.fit()
+# print('\n')
 
-#     param_grid keys: 'num_factors', 'reg', 'alpha', 'num_iters'
-#     Returns best_params dict and best validation RMSE.
-#     """
-#     best_rmse = float('inf')
-#     best_params = {}
-#     for k in param_grid.get('num_factors', [10]):
-#         for reg in param_grid.get('reg', [0.1]):
-#             for iters in param_grid.get('num_iters', [10]):
-#                 print(f"Testing k={k}, reg={reg}, iters={iters}")
-#                 model = ALSRecommender(
-#                     train_df, valid_df,
-#                     num_factors=k, num_iters=iters, reg=reg)
-#                 model.fit()
-#                 rmse = evaluate(valid_df, model.get_pred_fn())
-#                 print("\n\n")
-#                 if rmse < 0.86:
-#                     make_submission(
-#                       model.get_pred_fn(),
-#                       filename=f"submissions/als_simple_{k}_{reg}_{iters}.csv"
-#                     )
-#                 if rmse < best_rmse:
-#                     best_rmse, best_params = rmse, {
-#                         'num_factors': k,
-#                         'reg': reg,
-#                         'num_iters': iters
-#                     }
-#     print(f"Best params: {best_params}, Valid RMSE: {best_rmse:.4f}")
-#     return best_params, best_rmse
+# pred_fn = als.get_pred_fn()
+# make_submission(pred_fn,
+#                 filename=f'''submissions/als_simple_tuned_{k}_{regParam}_{num_iterations}.csv''')
+
+
+def hyperparameter_search(
+    train_df: pd.DataFrame,
+    valid_df: pd.DataFrame,
+    param_grid: Dict[str, Any]
+) -> Tuple[Dict[str, Any], float]:
+    """
+    Brute-force grid search over hyperparameters.
+
+    param_grid keys: 'num_factors', 'reg', 'alpha', 'num_iters'
+    Returns best_params dict and best validation RMSE.
+    """
+    best_rmse = float('inf')
+    best_params = {}
+    for k in param_grid.get('num_factors', [10]):
+        for reg in param_grid.get('reg', [0.1]):
+            for iters in param_grid.get('num_iters', [10]):
+                print(f"Testing k={k}, reg={reg}, iters={iters}")
+                model = ALSRecommender(
+                    train_df, valid_df,
+                    num_factors=k, num_iters=iters, reg=reg)
+                model.fit()
+                rmse = evaluate(valid_df, model.get_pred_fn())
+                print("\n\n")
+                if rmse < 0.86:
+                    make_submission(
+                      model.get_pred_fn(),
+                      filename=f"submissions/als_simple_{k}_{reg}_{iters}.csv"
+                    )
+                if rmse < best_rmse:
+                    best_rmse, best_params = rmse, {
+                        'num_factors': k,
+                        'reg': reg,
+                        'num_iters': iters
+                    }
+    print(f"Best params: {best_params}, Valid RMSE: {best_rmse:.4f}")
+    return best_params, best_rmse
 
 
 # train_df, valid_df = read_data_df()
 # grid = {'num_factors': [15, 20, 40, 60, 80, 100, 120],
-#         'reg': [10.0, 20.0],
+#         'reg': [5.0, 10.0, 20.0, 30.0, 40.0, 50.0],
 #         'num_iters': [30]}
 # hyperparameter_search(train_df, valid_df, grid)
