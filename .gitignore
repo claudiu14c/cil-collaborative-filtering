@@ -1,0 +1,23 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+.venv/
+venv/
+ENV/
+env/
+*.egg-info/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# VSCode or IDE specific
+.vscode/
+.idea/
+
+# Output folders
+submissions/
+*.csv
+*.log
