@@ -1,14 +1,16 @@
 from typing import Callable, Tuple
+from pathlib import Path
 
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import root_mean_squared_error
 import os
+import torch
 
 
 SEED = 42
-DATA_DIR = "./data"
+DATA_DIR = Path(__file__).resolve().parent / "data"
 
 
 def read_data_df(seed: int = SEED) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -24,7 +26,7 @@ def read_data_df(seed: int = SEED) -> Tuple[pd.DataFrame, pd.DataFrame]:
     df["pid"] = df["pid"].astype(int)
 
     # Split into train and validation dataset
-    train_df, valid_df = train_test_split(df, test_size=0.25, random_state=seed)
+    train_df, valid_df = train_test_split(df, test_size=0.95, random_state=seed)
     return train_df, valid_df
 
 
@@ -85,3 +87,12 @@ def make_submission(pred_fn: Callable[[np.ndarray, np.ndarray], np.ndarray],
 
 def read_wishlist():
     return pd.read_csv(os.path.join(DATA_DIR, 'train_tbr.csv'))
+
+
+def get_dataset(df: pd.DataFrame) -> torch.utils.data.Dataset:
+    """Conversion from pandas data frame to torch dataset."""
+
+    sids = torch.from_numpy(df["sid"].to_numpy())
+    pids = torch.from_numpy(df["pid"].to_numpy())
+    ratings = torch.from_numpy(df["rating"].to_numpy()).float()
+    return torch.utils.data.TensorDataset(sids, pids, ratings)
