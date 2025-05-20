@@ -21,3 +21,9 @@ env/
 submissions/
 *.csv
 *.log
+
+# macOS system files
+.DS_Store
+
+# OS trash
+.Trashes
