@@ -110,8 +110,8 @@ class ALSRecommender:
 val_rmses = []
 train_rmses = []
 for s in [10, 15, 20, 42, 50]:
-    print(s)
-    train_df, valid_df = read_data_df(s)
+    print(f"Seed: {s}")
+    train_df, valid_df = read_data_df(s, 0.25)
     k = 15
     num_iterations = 30
     regParam = 20.0

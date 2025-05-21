@@ -17,11 +17,14 @@ This section briefly explains how to run the different algorithms, including:
  - SVD++
  - ...
 
- Each algorithm has a python file (```.py```), and a notebook (```.ipynb```).
-The notebooks can be found in the ```./notebooks``` directory.
+Each algorithm has a python file (```.py```), and a notebook (```.ipynb```).
+The python scripts can be found in the ```./models``` directory, and the notebooks 
+can be found in the ```./notebooks``` directory.
+
+After initializing the environment, the models can be run with ```python models/modelName.py```.
 
 ### ALS
-Running the ```ALS.py``` script will perform, over five seeds, 30 iterations, with 15 latent factors, and regularization parameter of 20.
+Running the ```models/ALS.py``` script will perform, over five seeds, 30 iterations, with 15 latent factors, and regularization parameter of 20.
 It will print the train and validation score for each iteration, and, at the end, the mean and standard deviation for the train and validation rmse.
 Afterward, in lines 141 to 156 it outputs a submission. These lines are commented.
 

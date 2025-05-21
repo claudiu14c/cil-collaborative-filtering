@@ -10,13 +10,12 @@ import torch
 
 
 SEED = 42
-DATA_DIR = Path(__file__).resolve().parent / "data"
+DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
 
-def read_data_df(seed: int = SEED) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def read_data_df(seed: int = SEED, split: float = 0.25) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """Reads in data and splits it into training and
     validation sets with a 75/25 split."""
-
     df = pd.read_csv(os.path.join(DATA_DIR, "train_ratings.csv"))
 
     # Split sid_pid into sid and pid columns
@@ -26,7 +25,7 @@ def read_data_df(seed: int = SEED) -> Tuple[pd.DataFrame, pd.DataFrame]:
     df["pid"] = df["pid"].astype(int)
 
     # Split into train and validation dataset
-    train_df, valid_df = train_test_split(df, test_size=0.95, random_state=seed)
+    train_df, valid_df = train_test_split(df, test_size=split, random_state=seed)
     return train_df, valid_df
 
 
