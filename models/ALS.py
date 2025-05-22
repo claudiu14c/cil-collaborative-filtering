@@ -111,7 +111,7 @@ val_rmses = []
 train_rmses = []
 for s in [10, 15, 20, 42, 50]:
     print(f"Seed: {s}")
-    train_df, valid_df = read_data_df(s, 0.25)
+    train_df, valid_df = read_data_df(seed=s, split=0.25)
     k = 15
     num_iterations = 30
     regParam = 20.0
@@ -137,7 +137,7 @@ print(f'''Mean validation RMSE: {val_mean_rmse:.4f},
           Std validation RMSE: {val_std_rmse:.4f}''')
 
 
-# train_df, valid_df = read_data_df()
+# train_df, valid_df = read_data_df(split=0.25)
 # k = 15
 # num_iterations = 30
 # regParam = 20.0
@@ -191,7 +191,7 @@ def hyperparameter_search(
     return best_params, best_rmse
 
 
-# train_df, valid_df = read_data_df()
+# train_df, valid_df = read_data_df(s=0.25)
 # grid = {'num_factors': [15, 20, 40, 60, 80, 100, 120],
 #         'reg': [5.0, 10.0, 20.0, 30.0, 40.0, 50.0],
 #         'num_iters': [30]}

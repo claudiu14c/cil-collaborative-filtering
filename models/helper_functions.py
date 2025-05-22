@@ -13,10 +13,10 @@ SEED = 42
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
 
-def read_data_df(seed: int = SEED, split: float = 0.25) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def read_data_df(data_dir: str = DATA_DIR, seed: int = SEED, split: float = 0.25) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """Reads in data and splits it into training and
     validation sets with a 75/25 split."""
-    df = pd.read_csv(os.path.join(DATA_DIR, "train_ratings.csv"))
+    df = pd.read_csv(os.path.join(data_dir, "train_ratings.csv"))
 
     # Split sid_pid into sid and pid columns
     df[["sid", "pid"]] = df["sid_pid"].str.split("_", expand=True)

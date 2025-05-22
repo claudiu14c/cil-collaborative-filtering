@@ -20,26 +20,11 @@ import os
 import argparse
 import numpy as np
 import pandas as pd
-import math
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import root_mean_squared_error
 from collections import defaultdict
+from helper_functions import read_data_df
 
 # Helper functions
-
-def root_mean_squared_error(y_true, y_pred):
-    return math.sqrt(mean_squared_error(y_true, y_pred))
-
-
-def read_data_df(data_dir):
-    """Reads data and splits into train/validation sets (75/25)."""
-    df = pd.read_csv(os.path.join(data_dir, "train_ratings.csv"))
-    df[["sid","pid"]] = df["sid_pid"].str.split("_", expand=True)
-    df = df.drop(columns=["sid_pid"])
-    df["sid"] = df["sid"].astype(int)
-    df["pid"] = df["pid"].astype(int)
-    train_df, valid_df = train_test_split(df, test_size=0.25, random_state=0)
-    return train_df, valid_df
 
 
 def compute_baseline(user_arr, item_arr, rating_arr, n_users, n_items, reg=20.0, n_epochs=10, lr=0.005):
@@ -348,7 +333,7 @@ def main():
     args = parser.parse_args()
 
     # 1) load train+validation splits
-    train_df, valid_df = read_data_df(args.data_dir)
+    train_df, valid_df = read_data_df(data_dir=args.data_dir)
 
     # 2) Load TBR data and build a lookup set (as in your notebook)
     tbr_df = pd.read_csv(os.path.join(args.data_dir, "train_tbr.csv"))

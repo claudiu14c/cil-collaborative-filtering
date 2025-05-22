@@ -4,25 +4,8 @@ import os
 import argparse
 import numpy as np
 import pandas as pd
-import math
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error
-
-# Helper functions
-
-def root_mean_squared_error(y_true, y_pred):
-    return math.sqrt(mean_squared_error(y_true, y_pred))
-
-
-def read_data_df(data_dir):
-    """Reads data and splits into train/validation sets (75/25)."""
-    df = pd.read_csv(os.path.join(data_dir, "train_ratings.csv"))
-    df[["sid","pid"]] = df["sid_pid"].str.split("_", expand=True)
-    df = df.drop(columns=["sid_pid"])
-    df["sid"] = df["sid"].astype(int)
-    df["pid"] = df["pid"].astype(int)
-    train_df, valid_df = train_test_split(df, test_size=0.25, random_state=0)
-    return train_df, valid_df
+from sklearn.metrics import root_mean_squared_error
+from helper_functions import read_data_df
 
 
 def svdpp_pred(model, sids, pids):
@@ -39,7 +22,7 @@ def svdpp_pred(model, sids, pids):
     y = model['y']
     num_factors = model['num_factors']
     implicit = model['implicit']
-    
+
     preds = []
     for sid, pid in zip(sids, pids):
         pred = mu
@@ -65,14 +48,14 @@ def train_svdpp(train_df, valid_df=None, num_factors=20, lr=0.005, reg=0.02,
     NumPy-only SVD++ training with per-epoch validation and CSV logging.
     """
     np.random.seed(seed)
-    
+
     # set up per-epoch RMSE logging
     if valid_df is not None:
         os.makedirs('output', exist_ok=True)
         log_file = f"output/learning_curve_f{num_factors}_lr{lr}_reg{reg}.csv"
         with open(log_file, 'w') as logf:
             logf.write("epoch,rmse\n")
-    
+
     # 1) remap IDs to 0…N–1
     sids = train_df['sid'].unique()
     pids = train_df['pid'].unique()
@@ -184,7 +167,7 @@ def main():
     args = parser.parse_args()
 
     # load data
-    train_df, valid_df = read_data_df(args.data_dir)
+    train_df, valid_df = read_data_df(data_dir=args.data_dir)
 
     results = []
     total_combinations = (len(args.factors) * len(args.lrs) *
