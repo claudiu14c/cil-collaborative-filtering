@@ -271,7 +271,9 @@ def train_hybrid(train_df, valid_df=None,
               'p': p, 'q': q, 'y': y,
               'w': w, 'c': c,
               'user2ind': user2ind, 'item2ind': item2ind,
-              'implicit': implicit, 'neighbors': neighbors,
+              'implicit': implicit,
+              'implicit_ratings': ratings_by_user,
+              'neighbors': neighbors,
               'num_factors': num_factors
             }
             preds = hybrid_pred(model,
@@ -288,7 +290,9 @@ def train_hybrid(train_df, valid_df=None,
         'p': p, 'q': q, 'y': y,
         'w': w, 'c': c,
         'user2ind': user2ind, 'item2ind': item2ind,
-        'implicit': implicit, 'neighbors': neighbors,
+        'implicit': implicit,
+        'implicit_ratings': ratings_by_user,
+        'neighbors': neighbors,
         'num_factors': num_factors
     }
 
