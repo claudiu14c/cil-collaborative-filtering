@@ -28,6 +28,20 @@ def read_data_df(data_dir: str = DATA_DIR, seed: int = SEED, split: float = 0.25
     train_df, valid_df = train_test_split(df, test_size=split, random_state=seed)
     return train_df, valid_df
 
+def read_tbr_df(data_dir: str = DATA_DIR) -> pd.DataFrame:
+    """Reads the wishlist data."""
+    tbr_df = pd.read_csv(os.path.join(data_dir, "train_tbr.csv"))
+    return tbr_df
+
+def read_full_training_data(data_dir: str = DATA_DIR) -> pd.DataFrame:
+    """Reads the entire training dataset."""
+    df = pd.read_csv(os.path.join(data_dir, "train_ratings.csv"))
+    df[["sid", "pid"]] = df["sid_pid"].str.split("_", expand=True)
+    df = df.drop("sid_pid", axis=1)
+    df["sid"] = df["sid"].astype(int)
+    df["pid"] = df["pid"].astype(int)
+    return df
+
 
 def read_data_matrix(df: pd.DataFrame) -> np.ndarray:
     """Returns matrix view of the training data, where columns are scientists (sid) and
@@ -62,7 +76,7 @@ def evaluate(valid_df: pd.DataFrame,
 
 
 def make_submission(pred_fn: Callable[[np.ndarray, np.ndarray], np.ndarray],
-                    filename: os.PathLike):
+                    filename: str):
     """Makes a submission CSV file that can be submitted to kaggle.
 
     Inputs:
@@ -83,9 +97,17 @@ def make_submission(pred_fn: Callable[[np.ndarray, np.ndarray], np.ndarray],
     df["rating"] = pred_fn(sids, pids)
     df.to_csv(filename, index=False)
 
-
-def read_wishlist():
-    return pd.read_csv(os.path.join(DATA_DIR, 'train_tbr.csv'))
+def clip_and_make_submission(pred_fn_callable: Callable[[np.ndarray, np.ndarray], np.ndarray],
+                             filename: str, data_dir: os.PathLike = DATA_DIR):
+    """Creates a submission CSV file using the prediction function."""
+    df_sub = pd.read_csv(os.path.join(data_dir, "sample_submission.csv"))
+    sid_pid_split = df_sub["sid_pid"].str.split("_", expand=True)
+    sids_sub_vals = sid_pid_split[0].astype(int).values
+    pids_sub_vals = sid_pid_split[1].astype(int).values
+    predictions = pred_fn_callable(sids_sub_vals, pids_sub_vals)
+    df_sub["rating"] = np.clip(predictions, 1.0, 5.0)
+    df_sub.to_csv(filename, index=False)
+    print(f"Submission file created: {filename}")
 
 
 def get_dataset(df: pd.DataFrame) -> torch.utils.data.Dataset:

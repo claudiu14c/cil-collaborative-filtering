@@ -1,9 +1,6 @@
-import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import root_mean_squared_error
-import os
 import time
 import argparse
 
@@ -12,25 +9,12 @@ SEED = 42
 np.random.seed(SEED)
 
 # --- Helper Functions ---
-
-def read_data_df(data_dir):
-    """Reads training data and splits it into training and validation sets."""
-    df = pd.read_csv(os.path.join(data_dir, "train_ratings.csv"))
-    df[["sid", "pid"]] = df["sid_pid"].str.split("_", expand=True)
-    df = df.drop("sid_pid", axis=1)
-    df["sid"] = df["sid"].astype(int)
-    df["pid"] = df["pid"].astype(int)
-    train_df, valid_df = train_test_split(df, test_size=0.25, random_state=SEED)
-    return train_df, valid_df
-
-def read_full_training_data(data_dir):
-    """Reads the entire training dataset."""
-    df = pd.read_csv(os.path.join(data_dir, "train_ratings.csv"))
-    df[["sid", "pid"]] = df["sid_pid"].str.split("_", expand=True)
-    df = df.drop("sid_pid", axis=1)
-    df["sid"] = df["sid"].astype(int)
-    df["pid"] = df["pid"].astype(int)
-    return df
+from helper_functions import (
+    read_data_df,
+    read_full_training_data,
+    read_tbr_df,
+    clip_and_make_submission,
+)
 
 def evaluate_model_predictions(true_ratings, pred_ratings):
     """Calculates RMSE after clipping predictions to [1.0, 5.0]."""
@@ -44,16 +28,6 @@ def evaluate_with_model(model_dict, eval_df, pred_function):
     preds = pred_function(model_dict, eval_df["sid"].values, eval_df["pid"].values)
     return evaluate_model_predictions(eval_df["rating"].values, preds)
 
-def make_submission(pred_fn_callable, data_dir, filename):
-    """Creates a submission CSV file using the prediction function."""
-    df_sub = pd.read_csv(os.path.join(data_dir, "sample_submission.csv"))
-    sid_pid_split = df_sub["sid_pid"].str.split("_", expand=True)
-    sids_sub_vals = sid_pid_split[0].astype(int).values
-    pids_sub_vals = sid_pid_split[1].astype(int).values
-    predictions = pred_fn_callable(sids_sub_vals, pids_sub_vals)
-    df_sub["rating"] = np.clip(predictions, 1.0, 5.0)
-    df_sub.to_csv(filename, index=False)
-    print(f"Submission file created: {filename}")
 
 def plot_training_curves(n_total_epochs_run, train_rmse_hist, val_rmse_hist, title_prefix=""):
     """Plots training and validation RMSE over epochs."""
@@ -172,7 +146,6 @@ def train_svdpp_with_wishlist_integrated(train_df, tbr_df, num_factors, lr, reg,
         # Evaluate epoch performance
         train_rmse = np.sqrt(np.mean(squared_errors))
         train_rmse_history.append(train_rmse)
-        val_rmse = np.nan
         stopping_metric = train_rmse
 
         if valid_df is not None and (epoch + 1) % evaluate_every_n_epochs == 0 or epoch == n_epochs - 1:
@@ -228,8 +201,6 @@ def svdpp_pred_wishlist_integrated(model, sids_arr, pids_arr):
 def main():
     """Main function to train SVD++ with wishlist integration and generate submission."""
     parser = argparse.ArgumentParser(description="SVD++ with Integrated Wishlist for Recommendation System")
-    parser.add_argument('--data_dir', type=str, default="/cluster/courses/cil/collaborative_filtering/data",
-                        help="Directory with train_ratings.csv and train_tbr.csv")
     parser.add_argument('--factors', type=int, default=50, help="Number of latent factors")
     parser.add_argument('--lr', type=float, default=0.007, help="Learning rate")
     parser.add_argument('--reg', type=float, default=0.04, help="Regularization parameter")
@@ -243,8 +214,8 @@ def main():
     np.random.seed(args.seed)
 
     # Load data
-    train_df_split, valid_df_split = read_data_df(args.data_dir)
-    tbr_df = pd.read_csv(os.path.join(args.data_dir, "train_tbr.csv"))
+    train_df_split, valid_df_split = read_data_df()
+    tbr_df = read_tbr_df()
 
     # Train with validation
     print("Training SVD++ with Wishlist (Validation Split)")
@@ -258,7 +229,7 @@ def main():
 
     # Train on full data
     print("\nTraining SVD++ with Wishlist (Full Data)")
-    full_train_df = read_full_training_data(args.data_dir)
+    full_train_df = read_full_training_data()
     model_full, train_hist_full, _ = train_svdpp_with_wishlist_integrated(
         full_train_df, tbr_df, args.factors, args.lr, args.reg, args.epochs_full,
         early_stopping_patience=args.patience_full
@@ -269,7 +240,7 @@ def main():
     # Generate submission
     pred_fn = lambda sids, pids: svdpp_pred_wishlist_integrated(model_full, sids, pids)
     filename = f"svdpp_wishlist_f{args.factors}_lr{args.lr}_reg{args.reg}_ep{len(train_hist_full)}.csv"
-    make_submission(pred_fn, args.data_dir, filename)
+    clip_and_make_submission(pred_fn, filename)
 
 if __name__ == "__main__":
     main()

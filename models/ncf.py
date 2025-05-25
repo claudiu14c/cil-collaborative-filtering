@@ -5,6 +5,7 @@ import torch.nn.functional as F
 from helper_functions import (
     read_data_df,
     evaluate,
+    make_submission,
     get_dataset
 )
 
@@ -160,5 +161,5 @@ if __name__ == "__main__":
 
     print(f"Validation RMSE: {val_score:.3f}")
 
-    # with torch.no_grad():
-    #     make_submission(pred_fn, "collab-filtering-NCF.csv")
+    with torch.no_grad():
+        make_submission(pred_fn, "collab-filtering-NCF.csv")
