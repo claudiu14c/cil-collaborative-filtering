@@ -7,31 +7,7 @@ import pandas as pd
 from typing import Callable
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
-
-# Data directory
-DATA_DIR = "/cluster/courses/cil/collaborative_filtering/data"
-
-# Helper functions
-
-def read_data_for_training() -> pd.DataFrame:
-    """Reads in the entire dataset for training purposes (no split into validation)."""
-    df = pd.read_csv(os.path.join(DATA_DIR, "train_ratings.csv"))
-    df[["sid", "pid"]] = df["sid_pid"].str.split("_", expand=True)
-    df = df.drop(columns=["sid_pid"])
-    df["sid"] = df["sid"].astype(int)
-    df["pid"] = df["pid"].astype(int)
-    return df
-
-
-def make_submission(pred_fn: Callable[[np.ndarray, np.ndarray], np.ndarray], filename: str):
-    """Creates a submission file with predictions."""
-    sub = pd.read_csv(os.path.join(DATA_DIR, "sample_submission.csv"))
-    sid_pid = sub["sid_pid"].str.split("_", expand=True)
-    sids = sid_pid[0].astype(int).values
-    pids = sid_pid[1].astype(int).values
-    sub["rating"] = pred_fn(sids, pids)
-    sub.to_csv(filename, index=False)
-    print(f"Saved submission: {filename}")
+from helper_functions import make_submission, read_data_df
 
 
 def svdpp_pred(model, sids, pids):
@@ -162,10 +138,7 @@ def multi_seed_evaluate(
 
     for seed in seeds:
         print(f"\n=== Seed: {seed} ===")
-        full_df = read_data_for_training()
-        train_df, valid_df = train_test_split(
-            full_df, test_size=0.25, random_state=seed
-        )
+        train_df, valid_df = read_data_df()
         print(f"Training on {len(train_df)} ratings; validating on {len(valid_df)} ratings.")
 
         model = train_svdpp(
@@ -226,7 +199,8 @@ def main():
             args.epochs, args.seeds
         )
     else:
-        train_df = read_data_for_training()
+        train_df = read_data_df(split=0)
+        # read_data_for_training()
         print(f"Training on {len(train_df)} ratings with factors={args.factors}, lr={args.lr}, reg={args.reg}, epochs={args.epochs}, seed={args.seed}")
         model = train_svdpp(
             train_df,
@@ -237,11 +211,13 @@ def main():
             seed=args.seed
         )
 
-        pred_fn = lambda sids, pids: svdpp_pred(model, sids, pids)
+        def pred_fn(sids, pids):
+            return svdpp_pred(model, sids, pids)
         # Submission generation commented out
-        # out_name = f"svdpp_sub_{job_id}.csv"
-        # print(f"Generating submission to {out_name}")
-        # make_submission(pred_fn, out_name)
+        out_name = f"svdpp_sub_{job_id}.csv"
+        print(f"Generating submission to {out_name}")
+        make_submission(pred_fn, out_name)
+
 
 if __name__ == '__main__':
     main()

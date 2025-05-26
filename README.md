@@ -15,7 +15,7 @@
 This section briefly explains how to run the different algorithms, including:
  - ALS
  - SVD++
- - ...
+ - SVD++ extended
 
 Each algorithm has a python file (```.py```), and a notebook (```.ipynb```).
 The python scripts can be found in the ```./models``` directory, and the notebooks 
@@ -32,3 +32,15 @@ At the end of the file, there is also the code for the hyperparameter optimizati
 the lines 110 to 138 running over the five seeds.
 
 The notebook can be found in ```notebooks/ALS.ipynb```.
+
+### TODO: SVD++ how many epochs
+Running the ```models/svdpp_results.py``` script with the following cli arguments: ```--factors 50 --lr 0.005 --reg 0.05 --epochs 10 --multi_seed```
+will run the method over the five seeds, and print the mean and standard deviation for the train and validation rmse over the five seeds.
+
+Removing the ```-multi_seed``` argument, it simply trains on the full dataset, and makes a submission.
+
+### TODO SVD++ extended
+
+### TODO NCF
+
+### TODO BNCF

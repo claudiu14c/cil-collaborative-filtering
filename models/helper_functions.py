@@ -11,6 +11,7 @@ import torch
 
 SEED = 42
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+SUBMISSION_DIR = Path(__file__).resolve().parent.parent / "submissions"
 
 
 def read_data_df(data_dir: str = DATA_DIR, seed: int = SEED, split: float = 0.25) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -24,14 +25,18 @@ def read_data_df(data_dir: str = DATA_DIR, seed: int = SEED, split: float = 0.25
     df["sid"] = df["sid"].astype(int)
     df["pid"] = df["pid"].astype(int)
 
+    if split == 0.0:
+        return df
     # Split into train and validation dataset
     train_df, valid_df = train_test_split(df, test_size=split, random_state=seed)
     return train_df, valid_df
+
 
 def read_tbr_df(data_dir: str = DATA_DIR) -> pd.DataFrame:
     """Reads the wishlist data."""
     tbr_df = pd.read_csv(os.path.join(data_dir, "train_tbr.csv"))
     return tbr_df
+
 
 def read_full_training_data(data_dir: str = DATA_DIR) -> pd.DataFrame:
     """Reads the entire training dataset."""
@@ -95,7 +100,9 @@ def make_submission(pred_fn: Callable[[np.ndarray, np.ndarray], np.ndarray],
     pids = pids.astype(int).values
 
     df["rating"] = pred_fn(sids, pids)
-    df.to_csv(filename, index=False)
+    directory = SUBMISSION_DIR / filename
+    df.to_csv(directory, index=False)
+
 
 def clip_and_make_submission(pred_fn_callable: Callable[[np.ndarray, np.ndarray], np.ndarray],
                              filename: str, data_dir: os.PathLike = DATA_DIR):

@@ -149,8 +149,8 @@ print(f'''Mean validation RMSE: {val_mean_rmse:.4f},
 # print('\n')
 
 # pred_fn = als.get_pred_fn()
-# make_submission(pred_fn,
-#                 filename=f'''submissions/als_simple_tuned_{k}_{regParam}_{num_iterations}.csv''')
+# out_name = f"als_simple_tuned_{k}_{regParam}_{num_iterations}.csv"
+# make_submission(pred_fn, out_name)
 
 
 def hyperparameter_search(
@@ -178,8 +178,7 @@ def hyperparameter_search(
                 print("\n\n")
                 if rmse < 0.86:
                     make_submission(
-                      model.get_pred_fn(),
-                      filename=f"submissions/als_simple_{k}_{reg}_{iters}.csv"
+                      model.get_pred_fn()
                     )
                 if rmse < best_rmse:
                     best_rmse, best_params = rmse, {
