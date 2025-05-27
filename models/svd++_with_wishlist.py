@@ -196,25 +196,23 @@ def svdpp_pred_wishlist_integrated(model, sids_arr, pids_arr):
             preds[k] = mu + b_u[u] + b_i[i] + np.dot(q[i], p[u] + imp_sum)
     return preds
 
-# --- Main Execution ---
 
+# --- Main Execution ---
 def main():
     """Main function to train SVD++ with wishlist integration and generate submission."""
     parser = argparse.ArgumentParser(description="SVD++ with Integrated Wishlist for Recommendation System")
-    parser.add_argument('--factors', type=int, default=50, help="Number of latent factors")
-    parser.add_argument('--lr', type=float, default=0.007, help="Learning rate")
-    parser.add_argument('--reg', type=float, default=0.04, help="Regularization parameter")
-    parser.add_argument('--epochs_valid', type=int, default=20, help="Epochs for validation training")
+    parser.add_argument('--factors', type=int, default=100, help="Number of latent factors")
+    parser.add_argument('--lr', type=float, default=0.01, help="Learning rate")
+    parser.add_argument('--reg', type=float, default=0.005, help="Regularization parameter")
+    parser.add_argument('--epochs_valid', type=int, default=35, help="Epochs for validation training")
     parser.add_argument('--patience_valid', type=int, default=3, help="Early stopping patience for validation")
     parser.add_argument('--epochs_full', type=int, default=45, help="Epochs for full data training")
     parser.add_argument('--patience_full', type=int, default=5, help="Early stopping patience for full training")
     parser.add_argument('--seed', type=int, default=42, help="Random seed")
     args = parser.parse_args()
 
-    np.random.seed(args.seed)
-
     # Load data
-    train_df_split, valid_df_split = read_data_df()
+    train_df_split, valid_df_split = read_data_df(seed=args.seed)
     tbr_df = read_tbr_df()
 
     # Train with validation
@@ -242,5 +240,7 @@ def main():
     filename = f"svdpp_wishlist_f{args.factors}_lr{args.lr}_reg{args.reg}_ep{len(train_hist_full)}.csv"
     clip_and_make_submission(pred_fn, filename)
 
+
 if __name__ == "__main__":
     main()
+
