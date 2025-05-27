@@ -13,7 +13,7 @@ from helper_functions import (
     get_dataset
 )
 
-NUM_EPOCHS = 2
+NUM_EPOCHS = 1
 
 
 # Neural Collaborative Filtering
@@ -140,7 +140,8 @@ if __name__ == "__main__":
 
     train_scores = []
     val_scores = []
-    for s in [10, 15]:
+    for s in [10, 15, 20, 42, 50]:
+        print(f"Seed: {s}")
         # process data
         train_df, valid_df = read_data_df(seed=s)
         train_dataset = get_dataset(train_df)
@@ -169,7 +170,13 @@ if __name__ == "__main__":
 
         # prediction lambda function for generating the output
         # it collects the output of each models and clams their average
-        pred_fn = lambda sids, pids: model(torch.from_numpy(sids).to(device), torch.from_numpy(pids).to(device)).clamp(1, 5).cpu().numpy()
+        pred_fn = lambda sids, pids: torch.mean(
+            torch.stack([
+                model(torch.from_numpy(sids).to(device), torch.from_numpy(pids).to(device))
+                for model in ensemble_models
+            ]),
+            dim=0
+        ).clamp(1, 5).cpu().numpy()
 
         # Evaluate on validation data
         with torch.no_grad():
