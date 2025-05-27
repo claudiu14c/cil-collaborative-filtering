@@ -13,8 +13,8 @@ from helper_functions import (
     get_dataset
 )
 
-NUM_EPOCHS = 1
-
+NUM_EPOCHS = 3
+NUM_ENSEMBLES = 11
 
 # Neural Collaborative Filtering
 class NeuralCollaborativeFilteringModel(nn.Module):
@@ -151,7 +151,6 @@ if __name__ == "__main__":
 
         # create a list of models for the ensemble
         ensemble_models = []
-        NUM_ENSEMBLES = 2
         for i in range(NUM_ENSEMBLES):
             print("Ensemble", i)
             # Step 1: Create a bootstrap sample (sample with replacement)
@@ -196,5 +195,7 @@ if __name__ == "__main__":
               Std train RMSE: {train_std_rmse:.4f}''')
     print(f'''Mean validation RMSE: {val_mean_rmse:.4f},
               Std validation RMSE: {val_std_rmse:.4f}''')
-    # with torch.no_grad():
-    #     make_submission(pred_fn, "bagged-collab-filtering-NCF.csv")
+
+    # uncomment to make a submission using the last model
+    with torch.no_grad():
+        make_submission(pred_fn, "bagged-collab-filtering-NCF.csv")

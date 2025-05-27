@@ -59,15 +59,15 @@ To use other seeds, the following CLI argument can be used: ```--seed SEED```.
 To see the different available CLI arguments simply call the script with ```-h```.
 
 ### NCF
-Running the ```models/ncf.py``` scripts runs the NCF model over the five seeds, printing 
+Running the ```models/ncf.py``` script instantiates and trains an NCF model over the five seeds, printing 
 the train loss and validation RMSE for each epoch, and the final train and validation RMSE 
 for each seed.
 
 After running the five seeds, it prints the mean and standard deviation for the train and validation RMSE.
 
 ### Bagged NCF
-Running the ```models/bagged_ncf.py``` scripts runs the Bagged NCF model over the five seeds, printing 
-the train loss and validation RMSE for each ensemble for each epoch, 
-and the final train and validation RMSE for each seed (over all the ensembles).
+Running the ```models/bagged_ncf.py``` script instantiates and trains an ensemble of 11 NCF models using Bagging, for each of the five seeds. It prints 
+the train loss and validation RMSE for each epoch of each model, 
+and the final train and validation RMSE for the entire ensemble with each seed.
 
-After running the five seeds, it prints the mean and standard deviation for the train and validation RMSE.
+After running the five seeds, it prints the mean and standard deviation for the train and validation RMSE between ensembles.
