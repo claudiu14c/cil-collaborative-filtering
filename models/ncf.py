@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
 
 from helper_functions import (
     read_data_df,
@@ -137,29 +138,43 @@ if __name__ == "__main__":
 
     # run on a GPU if available
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using: {device}")
+    print(f"Using: {device}\n")
 
-    # process data
-    train_df, valid_df = read_data_df()
-    train_dataset = get_dataset(train_df)
-    valid_dataset = get_dataset(valid_df)
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True)
-    valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=64, shuffle=False)
-    print("Done processing data")
+    train_scores = []
+    val_scores = []
+    for s in [10, 15, 20, 42, 50]:
+        print(f"Seed: {s}")
+        # process data
+        train_df, valid_df = read_data_df(seed=s)
+        train_dataset = get_dataset(train_df)
+        valid_dataset = get_dataset(valid_df)
+        train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True)
+        valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=64, shuffle=False)
+        print("Done processing data")
 
-    # Define model (10k scientists, 1k papers, 32-dimensional embeddings) and optimizer
-    model = NeuralCollaborativeFilteringModel(10_000, 1_000, 32).to(device)
+        # Define model (10k scientists, 1k papers, 32-dimensional embeddings) and optimizer
+        model = NeuralCollaborativeFilteringModel(10_000, 1_000, 32).to(device)
 
+        model = train_model(model, train_loader, valid_loader)
 
-    model = train_model(model, train_loader, valid_loader)
+        pred_fn = lambda sids, pids: model(torch.from_numpy(sids).to(device), torch.from_numpy(pids).to(device)).clamp(1, 5).cpu().numpy()
+        # Evaluate on validation data
+        with torch.no_grad():
+            train_score = evaluate(train_df, pred_fn)
+            val_score = evaluate(valid_df, pred_fn)
 
-    pred_fn = lambda sids, pids: model(torch.from_numpy(sids).to(device), torch.from_numpy(pids).to(device)).clamp(1,
-                                                                                                                   5).cpu().numpy()
-    # Evaluate on validation data
-    with torch.no_grad():
-        val_score = evaluate(valid_df, pred_fn)
+        print(f"Train RMSE: {train_score:.3f}, Validation RMSE: {val_score:.3f}")
+        print("\n")
+        train_scores.append(train_score)
+        val_scores.append(val_score)
 
-    print(f"Validation RMSE: {val_score:.3f}")
-
-    with torch.no_grad():
-        make_submission(pred_fn, "collab-filtering-NCF.csv")
+    val_mean_rmse = np.mean(val_scores)
+    val_std_rmse = np.std(val_scores)
+    train_mean_rmse = np.mean(train_scores)
+    train_std_rmse = np.std(train_scores)
+    print(f'''Mean train RMSE: {train_mean_rmse:.4f},
+              Std train RMSE: {train_std_rmse:.4f}''')
+    print(f'''Mean validation RMSE: {val_mean_rmse:.4f},
+              Std validation RMSE: {val_std_rmse:.4f}''')
+    # with torch.no_grad():
+    #     make_submission(pred_fn, "collab-filtering-NCF.csv")

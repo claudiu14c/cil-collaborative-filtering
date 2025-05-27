@@ -1,5 +1,5 @@
 import random
-
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -81,6 +81,7 @@ class NeuralCollaborativeFilteringModel(nn.Module):
 
         return x
 
+
 def train_model(model, train_loader, valid_loader):
     optim = torch.optim.Adam(model.parameters(), lr=1e-3)
     for epoch in range(NUM_EPOCHS):
@@ -131,58 +132,61 @@ def train_model(model, train_loader, valid_loader):
     return model
 
 
-
-
 if __name__ == "__main__":
-    SEED = 42
-    torch.manual_seed(SEED)
-
     # run on a GPU if available
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using: {device}")
+    print(f"Using: {device}\n")
 
-    # process data
-    train_df, valid_df = read_data_df()
-    train_dataset = get_dataset(train_df)
-    valid_dataset = get_dataset(valid_df)
-    valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=64, shuffle=False)
-    print("Done processing data")
+    train_scores = []
+    val_scores = []
+    for s in [10, 15]:
+        # process data
+        train_df, valid_df = read_data_df(seed=s)
+        train_dataset = get_dataset(train_df)
+        valid_dataset = get_dataset(valid_df)
+        valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=64, shuffle=False)
+        print("Done processing data")
 
-    # create a list of models for the ensemble
-    ensemble_models = []
-    NUM_ENSEMBLES = 2
-    for i in range(NUM_ENSEMBLES):
-        print("Ensemble", i)
-        # Step 1: Create a bootstrap sample (sample with replacement)
-        indices = [random.randint(0, len(train_dataset) - 1) for _ in range(len(train_dataset))]
-        bootstrap_dataset = Subset(train_dataset, indices)
-        bootstrap_loader = torch.utils.data.DataLoader(bootstrap_dataset, batch_size=64, shuffle=True)
+        # create a list of models for the ensemble
+        ensemble_models = []
+        NUM_ENSEMBLES = 2
+        for i in range(NUM_ENSEMBLES):
+            print("Ensemble", i)
+            # Step 1: Create a bootstrap sample (sample with replacement)
+            indices = [random.randint(0, len(train_dataset) - 1) for _ in range(len(train_dataset))]
+            bootstrap_dataset = Subset(train_dataset, indices)
+            bootstrap_loader = torch.utils.data.DataLoader(bootstrap_dataset, batch_size=64, shuffle=True)
 
-        # Step 2: Initialize a new model
-        model = NeuralCollaborativeFilteringModel(10_000, 1_000, 32).to(device)
+            # Step 2: Initialize a new model
+            model = NeuralCollaborativeFilteringModel(10_000, 1_000, 32).to(device)
 
-        # Step 3: Train the model on the bootstrap sample
-        trained_model = train_model(model, bootstrap_loader, valid_loader)
+            # Step 3: Train the model on the bootstrap sample
+            trained_model = train_model(model, bootstrap_loader, valid_loader)
 
-        # Step 4: Store the trained model
-        ensemble_models.append(trained_model)
-    print(len(ensemble_models))
+            # Step 4: Store the trained model
+            ensemble_models.append(trained_model)
 
-    # prediction lambda function for generating the output
-    # it collects the output of each models and clams their average
-    pred_fn = lambda sids, pids: torch.mean(
-        torch.stack([
-            model(torch.from_numpy(sids).to(device), torch.from_numpy(pids).to(device))
-            for model in ensemble_models
-        ]),
-        dim=0
-    ).clamp(1, 5).cpu().numpy()
+        # prediction lambda function for generating the output
+        # it collects the output of each models and clams their average
+        pred_fn = lambda sids, pids: model(torch.from_numpy(sids).to(device), torch.from_numpy(pids).to(device)).clamp(1, 5).cpu().numpy()
 
-    # Evaluate on validation data
-    with torch.no_grad():
-        val_score = evaluate(valid_df, pred_fn)
+        # Evaluate on validation data
+        with torch.no_grad():
+            train_score = evaluate(train_df, pred_fn)
+            val_score = evaluate(valid_df, pred_fn)
 
-    print(f"Validation RMSE: {val_score:.3f}")
+        print(f"Train RMSE: {train_score:.3f}, Validation RMSE: {val_score:.3f}")
+        print("\n")
+        train_scores.append(train_score)
+        val_scores.append(val_score)
 
-    with torch.no_grad():
-        make_submission(pred_fn, "bagged-collab-filtering-NCF.csv")
+    val_mean_rmse = np.mean(val_scores)
+    val_std_rmse = np.std(val_scores)
+    train_mean_rmse = np.mean(train_scores)
+    train_std_rmse = np.std(train_scores)
+    print(f'''Mean train RMSE: {train_mean_rmse:.4f},
+              Std train RMSE: {train_std_rmse:.4f}''')
+    print(f'''Mean validation RMSE: {val_mean_rmse:.4f},
+              Std validation RMSE: {val_std_rmse:.4f}''')
+    # with torch.no_grad():
+    #     make_submission(pred_fn, "bagged-collab-filtering-NCF.csv")
