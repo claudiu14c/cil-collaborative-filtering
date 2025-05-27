@@ -24,7 +24,7 @@ def svdpp_pred(model, sids, pids):
     y = model['y']
     num_factors = model['num_factors']
     implicit = model['implicit']
-    
+
     preds = []
     for sid, pid in zip(sids, pids):
         pred = mu

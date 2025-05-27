@@ -4,10 +4,6 @@ from sklearn.metrics import root_mean_squared_error
 import time
 import argparse
 
-# Set random seed for reproducibility
-SEED = 42
-np.random.seed(SEED)
-
 # --- Helper Functions ---
 from helper_functions import (
     read_data_df,
@@ -16,10 +12,12 @@ from helper_functions import (
     clip_and_make_submission,
 )
 
+
 def evaluate_model_predictions(true_ratings, pred_ratings):
     """Calculates RMSE after clipping predictions to [1.0, 5.0]."""
     preds_clipped = np.clip(pred_ratings, 1.0, 5.0)
     return root_mean_squared_error(true_ratings, preds_clipped)
+
 
 def evaluate_with_model(model_dict, eval_df, pred_function):
     """Evaluates the model on the given dataframe using the prediction function."""
@@ -49,8 +47,8 @@ def plot_training_curves(n_total_epochs_run, train_rmse_hist, val_rmse_hist, tit
     plt.grid(True)
     plt.show()
 
-# --- SVD++ with Wishlist Integration ---
 
+# --- SVD++ with Wishlist Integration ---
 def train_svdpp_with_wishlist_integrated(train_df, tbr_df, num_factors, lr, reg, n_epochs, valid_df=None, early_stopping_patience=5, evaluate_every_n_epochs=1):
     """
     Trains an SVD++ model with integrated wishlist data using stochastic gradient descent.
@@ -179,6 +177,7 @@ def train_svdpp_with_wishlist_integrated(train_df, tbr_df, num_factors, lr, reg,
 
     return best_model_params, train_rmse_history, val_rmse_history
 
+
 def svdpp_pred_wishlist_integrated(model, sids_arr, pids_arr):
     """Predicts ratings using the trained SVD++ model with wishlist integration."""
     mu, user2ind, item2ind = model["mu"], model["user2ind"], model["item2ind"]
@@ -243,4 +242,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

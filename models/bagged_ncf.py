@@ -15,6 +15,7 @@ from helper_functions import (
 
 NUM_EPOCHS = 2
 
+
 # Neural Collaborative Filtering
 class NeuralCollaborativeFilteringModel(nn.Module):
     def __init__(self, num_scientists: int, num_papers: int, dim: int, hidden_dims=(32, 16)):
@@ -144,7 +145,7 @@ if __name__ == "__main__":
         train_df, valid_df = read_data_df(seed=s)
         train_dataset = get_dataset(train_df)
         valid_dataset = get_dataset(valid_df)
-        valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=64, shuffle=False)
+        valid_loader = DataLoader(valid_dataset, batch_size=64, shuffle=False)
         print("Done processing data")
 
         # create a list of models for the ensemble
@@ -155,7 +156,7 @@ if __name__ == "__main__":
             # Step 1: Create a bootstrap sample (sample with replacement)
             indices = [random.randint(0, len(train_dataset) - 1) for _ in range(len(train_dataset))]
             bootstrap_dataset = Subset(train_dataset, indices)
-            bootstrap_loader = torch.utils.data.DataLoader(bootstrap_dataset, batch_size=64, shuffle=True)
+            bootstrap_loader = DataLoader(bootstrap_dataset, batch_size=64, shuffle=True)
 
             # Step 2: Initialize a new model
             model = NeuralCollaborativeFilteringModel(10_000, 1_000, 32).to(device)

@@ -12,11 +12,13 @@ from helper_functions import (
 
 NUM_EPOCHS = 1
 
-"""
-Neural Collaborative Filtering Class
-The architecture can be consulted at https://arxiv.org/abs/1708.05031
-"""
+
 class NeuralCollaborativeFilteringModel(nn.Module):
+    """
+    Neural Collaborative Filtering Class
+    The architecture can be consulted at https://arxiv.org/abs/1708.05031
+    """
+
     def __init__(self, num_scientists: int, num_papers: int, dim: int, hidden_dims=(32, 16)):
         super().__init__()
 
@@ -82,6 +84,7 @@ class NeuralCollaborativeFilteringModel(nn.Module):
 
         return x
 
+
 def train_model(model, train_loader, valid_loader):
     optim = torch.optim.Adam(model.parameters(), lr=1e-3)
     for epoch in range(NUM_EPOCHS):
@@ -132,10 +135,7 @@ def train_model(model, train_loader, valid_loader):
     return model
 
 
-
-
 if __name__ == "__main__":
-
     # run on a GPU if available
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using: {device}\n")
