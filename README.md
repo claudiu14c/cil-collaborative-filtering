@@ -12,16 +12,19 @@
    ```
 
 ## Methods
-This section briefly explains how to run the different algorithms, including:
+This section briefly explains how to run the different models, namely:
  - ALS
  - SVD++
  - SVD++ extended
+ - NCF
+ - Bagged NCF
 
 Each algorithm has a python file (```.py```), and a notebook (```.ipynb```).
 The python scripts can be found in the ```./models``` directory, and the notebooks 
 can be found in the ```./notebooks``` directory.
 
 After initializing the environment, the models can be run with ```python models/modelName.py```.
+We describe how to run each model individually.
 
 ### ALS
 Running the ```models/ALS.py``` script will perform, over five seeds, 30 iterations, with 15 latent factors, and regularization parameter of 20.
@@ -39,8 +42,24 @@ will run the method over the five seeds, and print the mean and standard deviati
 
 Removing the ```-multi_seed``` argument, it simply trains on the full dataset, and makes a submission.
 
-### TODO SVD++ extended
+To see the different available cli arguments simply call the script with ```-h```.
 
-### TODO NCF
+### SVD++ extended
+Running the ```models/svd++_with_wishlist.py``` script will run the model using seed ```42```.
+To use other seeds, the following cli argument can be used: ```--seed SEED```.
 
-### TODO BNCF
+To see the different available cli arguments simply call the script with ```-h```.
+
+### NCF
+Running the ```models/ncf.py``` scripts runs the NCF model over the five seeds, printing 
+the train loss and validation RMSE for each epoch, and the final train and validation RMSE 
+for each seed.
+
+After running the five seeds, it prints the mean and standard deviation for the train and validation RMSE.
+
+### Bagged NCF
+Running the ```models/ncf_bagged.py``` scripts runs the Bagged NCF model over the five seeds, printing 
+the train loss and validation RMSE for each epoch, and the final train and validation RMSE 
+for each seed.
+
+After running the five seeds, it prints the mean and standard deviation for the train and validation RMSE.
