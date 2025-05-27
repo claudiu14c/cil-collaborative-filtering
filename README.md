@@ -26,6 +26,12 @@ can be found in the ```./notebooks``` directory.
 After initializing the environment, the models can be run with ```python models/modelName.py```.
 We describe how to run each model individually.
 
+Note that there are some other models in the ```models``` directory that were not tested.
+In particular, there are three different SVD++ scripts, including the SVD++-hybrid script,
+which we described in the report, but did not include in testing due to its high 
+computational requirements and lack of improvement over the SVD++ method.
+We left them in the repository for completeness.
+
 ### ALS
 Running the ```models/ALS.py``` script will perform, over five seeds, 30 iterations, with 15 latent factors, and regularization parameter of 20.
 It will print the train and validation score for each iteration, and, at the end, the mean and standard deviation for the train and validation RMSE.
