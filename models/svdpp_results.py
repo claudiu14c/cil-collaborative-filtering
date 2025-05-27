@@ -199,7 +199,7 @@ def main():
             args.epochs, args.seeds
         )
     else:
-        train_df = read_data_df(split=0)
+        train_df = read_data_df(split=0.0)
         # read_data_for_training()
         print(f"Training on {len(train_df)} ratings with factors={args.factors}, lr={args.lr}, reg={args.reg}, epochs={args.epochs}, seed={args.seed}")
         model = train_svdpp(
