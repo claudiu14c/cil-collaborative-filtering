@@ -138,7 +138,7 @@ def multi_seed_evaluate(
 
     for seed in seeds:
         print(f"\n=== Seed: {seed} ===")
-        train_df, valid_df = read_data_df()
+        train_df, valid_df = read_data_df(seed=seed)
         print(f"Training on {len(train_df)} ratings; validating on {len(valid_df)} ratings.")
 
         model = train_svdpp(
