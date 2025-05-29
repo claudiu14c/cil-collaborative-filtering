@@ -1,8 +1,10 @@
 from typing import Dict, Any, Tuple
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 from sklearn.metrics import root_mean_squared_error
+
+# --- Helper Functions ---
 from helper_functions import (
     read_data_df,
     read_full_data_matrix,
@@ -48,6 +50,7 @@ class ALSRecommender:
         self.V = np.random.normal(scale=0.1, size=(self.n_items, self.k))
 
     def fit(self):
+        """ Trains an ALS model"""
         I_k = np.eye(self.k)
 
         for it in range(self.num_iters):
@@ -86,6 +89,7 @@ class ALSRecommender:
                   f"Validate RMSE: {val_rmse:.4f}")
 
     def predict(self, sids: np.ndarray, pids: np.ndarray) -> np.ndarray:
+        """ Makes a prediction with an ALS model"""
         preds = []
         # get mean predicted ratings
         global_mean = np.nanmean(self.U @ self.V.T)
@@ -109,6 +113,7 @@ class ALSRecommender:
 
 val_rmses = []
 train_rmses = []
+# train an ALS model for each random seed and compute their average accuracy
 for s in [10, 15, 20, 42, 50]:
     print(f"Seed: {s}")
     train_df, valid_df = read_data_df(seed=s, split=0.25)

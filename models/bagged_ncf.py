@@ -6,6 +6,7 @@ import torch.nn.functional as F
 
 from torch.utils.data import DataLoader, Subset
 
+# --- Helper Functions ---
 from helper_functions import (
     read_data_df,
     evaluate,
@@ -22,11 +23,12 @@ class NeuralCollaborativeFilteringModel(nn.Module):
         super().__init__()
 
         # Assign to each scientist and paper an embedding
-        self.scientist_vec_gmf = nn.Embedding(num_scientists, dim)
-        self.paper_vec_gmf = nn.Embedding(num_papers, dim)
-
         self.scientist_emb_mlp = nn.Embedding(num_scientists, dim)
         self.paper_emb_mlp = nn.Embedding(num_papers, dim)
+
+        # generate separate embeddings for the Generalised Matrix Factorisation
+        self.scientist_vec_gmf = nn.Embedding(num_scientists, dim)
+        self.paper_vec_gmf = nn.Embedding(num_papers, dim)
 
         # MLP layers
         mlp1_layers = []
@@ -61,16 +63,17 @@ class NeuralCollaborativeFilteringModel(nn.Module):
         scientist_vec_gmf = self.scientist_vec_gmf(sid)  # [B, dim]
         paper_vec_gmf = self.paper_vec_gmf(pid)  # [B, dim]
 
+        # compute outer product
         gmf = scientist_vec_gmf * paper_vec_gmf
 
         # Fetch mlp embeddings
         scientist_vec = self.scientist_emb_mlp(sid)  # [B, dim]
         paper_vec = self.paper_emb_mlp(pid)  # [B, dim]
 
-        # # Concatenate embeddings
+        # Concatenate embeddings
         x = torch.cat([scientist_vec, paper_vec], dim=-1)  # [B, 2*dim]
 
-        # # Feed through MLP
+        # Feed through MLP
         x = self.mlp1(x)  # [B, hdims[-1]]
 
         x = torch.cat([x, gmf], dim=-1)  # [B, dim+hdims[-1]]
@@ -84,6 +87,10 @@ class NeuralCollaborativeFilteringModel(nn.Module):
 
 
 def train_model(model, train_loader, valid_loader):
+    """
+        Trains an NCF model of NUM_EPOCH epochs
+        returns: trained model
+    """
     optim = torch.optim.Adam(model.parameters(), lr=1e-3)
     for epoch in range(NUM_EPOCHS):
         print("Epoch", epoch)
@@ -140,6 +147,7 @@ if __name__ == "__main__":
 
     train_scores = []
     val_scores = []
+    # train an ensemble for ech seed
     for s in [10, 15, 20, 42, 50]:
         print(f"Seed: {s}")
         # process data
@@ -158,7 +166,7 @@ if __name__ == "__main__":
             bootstrap_dataset = Subset(train_dataset, indices)
             bootstrap_loader = DataLoader(bootstrap_dataset, batch_size=64, shuffle=True)
 
-            # Step 2: Initialize a new model
+            # Step 2: initialise a new model (10k scientists, 1k papers, 32-dimensional embeddings)
             model = NeuralCollaborativeFilteringModel(10_000, 1_000, 32).to(device)
 
             # Step 3: Train the model on the bootstrap sample
@@ -168,7 +176,7 @@ if __name__ == "__main__":
             ensemble_models.append(trained_model)
 
         # prediction lambda function for generating the output
-        # it collects the output of each models and clams their average
+        # it collects the output of each models and clams their average into [1,5]
         pred_fn = lambda sids, pids: torch.mean(
             torch.stack([
                 model(torch.from_numpy(sids).to(device), torch.from_numpy(pids).to(device))
@@ -197,5 +205,5 @@ if __name__ == "__main__":
               Std validation RMSE: {val_std_rmse:.4f}''')
 
     # uncomment to make a submission using the last model
-    with torch.no_grad():
-        make_submission(pred_fn, "bagged-collab-filtering-NCF.csv")
+    # with torch.no_grad():
+    #     make_submission(pred_fn, "bagged-collab-filtering-NCF.csv")

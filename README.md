@@ -71,3 +71,14 @@ the train loss and validation RMSE for each epoch of each model,
 and the final train and validation RMSE for the entire ensemble with each seed.
 
 After running the five seeds, it prints the mean and standard deviation for the train and validation RMSE between ensembles.
+
+
+## Data
+
+Our training data lies in the ```/data``` directory. The training dataset consists of paper ratings by scientists (`train_ratings.csv`), as well as of a wishlist of papers that scientists want to read (`train_tbr.csv`). 
+Both are in the form of CSV files.
+
+ - `train_ratings.csv` has 2 columns: `sid_pid` - which is a concatenation of the unique scientist and paper IDs, and `rating` - which is an integer between 1 and 5 that represents the rating the scientist `sid` gave to the paper `pid`.
+
+ - `train_tbr.csv` has 2 columns: `sid` and `pid`, showing that `pid` is on `sid`'s wishlist.
+
