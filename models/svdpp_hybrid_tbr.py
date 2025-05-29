@@ -7,7 +7,6 @@ Extended hybrid model (baseline + SVD++ + neighborhood + wish-list) with per-epo
 
 Usage example:
 $ python hybrid_tbr_submit.py \
-    --data_dir /cluster/courses/cil/collaborative_filtering/data \
     --factors 20 \
     --lr1 0.007 --lr2 0.007 --lr3 0.001 \
     --reg1 0.005 --reg2 0.015 --reg3 0.015 \
@@ -22,10 +21,12 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import root_mean_squared_error
 from collections import defaultdict
-from helper_functions import read_data_df
 
 # Helper functions
-
+from helper_functions import(
+    read_data_df,
+    read_tbr_df
+)
 
 def compute_baseline(user_arr, item_arr, rating_arr, n_users, n_items, reg=20.0, n_epochs=10, lr=0.005):
     """
@@ -316,9 +317,6 @@ def train_hybrid_with_tbr(train_df, wish_df, valid_df=None,
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_dir',  type=str,
-                        default="/cluster/courses/cil/collaborative_filtering/data",
-                        help="Directory with train_ratings.csv and train_tbr.csv")
     parser.add_argument('--factors',   type=int,   default=20)
     parser.add_argument('--lr1',       type=float, default=0.007)
     parser.add_argument('--lr2',       type=float, default=0.007)
@@ -333,10 +331,10 @@ def main():
     args = parser.parse_args()
 
     # 1) load train+validation splits
-    train_df, valid_df = read_data_df(data_dir=args.data_dir)
+    train_df, valid_df = read_data_df()
 
     # 2) Load TBR data and build a lookup set (as in your notebook)
-    tbr_df = pd.read_csv(os.path.join(args.data_dir, "train_tbr.csv"))
+    tbr_df = read_tbr_df()
     tbr_pairs = set(zip(tbr_df['sid'], tbr_df['pid']))
 
     # 3) call the training function with that set

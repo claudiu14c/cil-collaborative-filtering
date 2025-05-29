@@ -150,9 +150,6 @@ def train_svdpp(train_df, valid_df=None, num_factors=20, lr=0.005, reg=0.02,
 
 def main():
     parser = argparse.ArgumentParser(description="SVD++ grid search on validation RMSE")
-    parser.add_argument('--data_dir', type=str,
-                        default="/cluster/courses/cil/collaborative_filtering/data",
-                        help='Directory with train_ratings.csv')
     parser.add_argument('--factors', type=int, nargs='+', default=[50],
                         help='Latent factor sizes to try')
     parser.add_argument('--lrs', type=float, nargs='+', default=[0.005],
@@ -167,7 +164,7 @@ def main():
     args = parser.parse_args()
 
     # load data
-    train_df, valid_df = read_data_df(data_dir=args.data_dir)
+    train_df, valid_df = read_data_df()
 
     results = []
     total_combinations = (len(args.factors) * len(args.lrs) *

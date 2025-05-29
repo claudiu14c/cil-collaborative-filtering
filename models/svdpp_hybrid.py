@@ -7,7 +7,6 @@ Train the full hybrid model (baseline + SVD++ + neighborhood) and log per-epoch 
 
 Usage example:
 $ python hybrid_submit.py \
-    --data_dir /cluster/courses/cil/collaborative_filtering/data \
     --factors 20 \
     --lr1 0.007 \
     --lr2 0.007 \
@@ -282,8 +281,6 @@ def train_hybrid(train_df, valid_df=None,
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument('--data_dir', type=str,
-                   default="/cluster/courses/cil/collaborative_filtering/data")
     p.add_argument('--factors', type=int, default=20)
     p.add_argument('--lr1', type=float, default=0.007)
     p.add_argument('--lr2', type=float, default=0.007)
@@ -299,7 +296,7 @@ def main():
                    default='output/svdpp_hybrid_grid_results.csv')
     args = p.parse_args()
 
-    train_df, valid_df = read_data_df(data_dir=args.data_dir)
+    train_df, valid_df = read_data_df()
     model = train_hybrid(
         train_df, valid_df,
         num_factors=args.factors,
